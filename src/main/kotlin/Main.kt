@@ -2,7 +2,8 @@ package org.example
 
 import java.io.File
 
-
+const val NUMBER_OF_CORRECT_ANSWERS_FOR_REMEMBER = 3
+const val CONST_FOR_PERCENT_CALCULATING = 100
 fun main() {
     val dictionary = loadDictionary()
 
@@ -12,7 +13,14 @@ fun main() {
         println("0 - Выход")
         when (readln().toIntOrNull()) {
             1 -> println("Выбран пункт \"Учить слова\".")
-            2 -> println("Выбран пункт \"Статистика\"")
+            2 -> {
+                println("Ваша статистика:")
+                val learnedCount = dictionary.filter { it.correctAnswerCount >= NUMBER_OF_CORRECT_ANSWERS_FOR_REMEMBER }
+                val learnedPercent =
+                    (learnedCount.size.toDouble() / dictionary.size * CONST_FOR_PERCENT_CALCULATING).toInt()
+                println("Выучено ${learnedCount.size} из ${dictionary.size} слов | $learnedPercent%\n")
+            }
+
             0 -> {
                 println("Приложение остановлено.")
                 return
