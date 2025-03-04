@@ -12,7 +12,24 @@ fun main() {
         println("2 - Статистика")
         println("0 - Выход")
         when (readln().toIntOrNull()) {
-            1 -> println("Выбран пункт \"Учить слова\".")
+            1 -> {
+                println("\nВыбран пункт \"Учить слова\".")
+                val notLearnedList =
+                    dictionary.filter { it.correctAnswerCount < NUMBER_OF_CORRECT_ANSWERS_FOR_REMEMBER }
+                if (notLearnedList.isEmpty()) {
+                    println("Все слова выучены.\n")
+                    continue
+                } else {
+                    val questionWords = notLearnedList.take(4)
+                    questionWords.shuffled()
+                    val correctAnswer = questionWords.random().original
+                    println(correctAnswer)
+                    questionWords.forEachIndexed { index, word -> println("${index + 1}. ${word.translate}") }
+                    print("Ваш ответ: ")
+                    readln()
+                }
+            }
+
             2 -> {
                 println("Ваша статистика:")
                 val learnedCount = dictionary.filter { it.correctAnswerCount >= NUMBER_OF_CORRECT_ANSWERS_FOR_REMEMBER }
