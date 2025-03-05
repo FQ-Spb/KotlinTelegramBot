@@ -23,36 +23,30 @@ fun main() {
                     continue
                 } else {
                     val questionWords = notLearnedList.shuffled().take(NUMBER_OF_ANSWER_OPTIONS)
-                    val correctAnswer = questionWords.random().original
-                    val indexOfCorrectAnswer =
-                        questionWords.indexOf(questionWords.find { it.original == correctAnswer })
+                    val correctAnswer = questionWords.random()
+                    val correctAnswerId = questionWords.indexOf(correctAnswer) + 1
                     var userAnswerInput: Int?
+                    var isInputValid: Boolean
 
                     do {
-                        println(correctAnswer)
+                        println(correctAnswer.original)
                         questionWords.forEachIndexed { index, word -> println("${index + 1}. ${word.translate}") }
                         val maxLength = questionWords.maxOf { it.translate.length }
                         println("${"-".repeat(maxLength + 3)}\n$NUMBER_FOR_EXIT. Меню")
                         print("Ваш ответ: ")
                         userAnswerInput = readln().toIntOrNull()
-                        println("Неверный ввод.Введите число от 1 до 4 либо 0 для выхода в меню.\n")
-                    } while (userAnswerInput == null || userAnswerInput < 0 || userAnswerInput > 4)
-
-                    when {
-                        userAnswerInput == 0 -> {
-                            println()
-                            continue
+                        isInputValid = userAnswerInput != null && userAnswerInput in (1..4)
+                        if (!isInputValid) {
+                            println("Неверный ввод. Введите число от 1 до 4 либо 0 для выхода в меню.\n")
                         }
+                    } while (!isInputValid)
 
-                        userAnswerInput != indexOfCorrectAnswer + 1 ->
-                            println("Неправильно! $correctAnswer - это ${questionWords[indexOfCorrectAnswer].translate}}")
-
-                        userAnswerInput == indexOfCorrectAnswer + 1 -> {
-                            println("Правильно!")
-                            dictionary.find { it.original == correctAnswer }!!.correctAnswerCount++
-                            saveDictionary(dictionary)
-                        }
-                    }
+                    if (userAnswerInput == 0) continue
+                    if (userAnswerInput == correctAnswerId) {
+                        println("Правильно!")
+                        correctAnswer.correctAnswerCount++
+                        saveDictionary(dictionary)
+                    } else println("Не правильно! ${correctAnswer.original} - это ${correctAnswer.translate}")
                 }
             }
 
