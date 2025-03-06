@@ -23,7 +23,12 @@ fun Question.asConsoleString() {
 }
 
 fun main() {
-    val trainer = LearnWordsTrainer()
+    val trainer = try {
+        LearnWordsTrainer()
+    } catch (e: Exception) {
+        println("Файл со словами пуст или некорректен")
+        return
+    }
 
     while (true) {
         println("1 - Учить слова\n2 - Статистика\n0 - Выход")
@@ -37,7 +42,6 @@ fun main() {
                 } else {
                     var userAnswerInput: Int?
                     var isInputValid: Boolean
-
                     do {
                         question.asConsoleString()
                         userAnswerInput = readln().toIntOrNull()
