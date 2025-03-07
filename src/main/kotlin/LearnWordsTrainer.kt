@@ -45,16 +45,20 @@ class LearnWordsTrainer {
     }
 
     fun getStatistic(): Statistic {
-        val learnedCount = dictionary.filter { it.correctAnswerCount >= NUMBER_OF_CORRECT_ANSWERS_FOR_REMEMBER }.size
-        val learnedPercent = (learnedCount.toDouble() / dictionary.size * CONST_FOR_PERCENT_CALCULATING).toInt()
         val total = dictionary.size
+        val learnedCount = dictionary.filter { it.correctAnswerCount >= NUMBER_OF_CORRECT_ANSWERS_FOR_REMEMBER }.size
+        val learnedPercent = (learnedCount.toDouble() / total * CONST_FOR_PERCENT_CALCULATING).toInt()
         return Statistic(learnedCount, learnedPercent, total)
     }
 
     fun getNextQuestion(): Question? {
-        val notLearnedList = dictionary.filter { it.correctAnswerCount < NUMBER_OF_CORRECT_ANSWERS_FOR_REMEMBER }
+        val notLearnedList: List<Word> =
+            dictionary.filter { it.correctAnswerCount < NUMBER_OF_CORRECT_ANSWERS_FOR_REMEMBER }
         if (notLearnedList.isEmpty()) return null
-        val questionWords = notLearnedList.shuffled().take(NUMBER_OF_ANSWER_OPTIONS)
+        val questionWords = if (notLearnedList.size < NUMBER_OF_ANSWER_OPTIONS) {
+            val reserveList = (notLearnedList+dictionary.shuffled().take(NUMBER_OF_ANSWER_OPTIONS)).distinct().shuffled().take(NUMBER_OF_ANSWER_OPTIONS)
+            reserveList
+        } else notLearnedList.shuffled().take(NUMBER_OF_ANSWER_OPTIONS)
         val correctAnswer = questionWords.random()
         question = Question(variants = questionWords, correctAnswer = correctAnswer)
 
