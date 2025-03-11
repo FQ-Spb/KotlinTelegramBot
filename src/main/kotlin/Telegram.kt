@@ -8,21 +8,27 @@ import java.net.http.HttpResponse
 fun main(args: Array<String>) {
 
     val botToken = args[0]
-    var updateId = 0
+    var updateId: Int? = 0
 
     while (true) {
-        Thread.sleep(/* millis = */ 2000)
+        Thread.sleep(2000)
         val updates: String = getUpdates(botToken, updateId)
-        println(updates)
-        val startUpdateId = updates.lastIndexOf("update_id")
-        val endUpdateId = updates.lastIndexOf(",\n\"message\"")
-        if (startUpdateId == -1 || endUpdateId == -1) continue
-        val updateIdString: String = updates.substring(startUpdateId + 11, endUpdateId)
-        updateId = updateIdString.toInt() + 1
+        val updateIdRegex = "\"update_id\":(.+?),".toRegex()
+        val matchIdRegex = updateIdRegex.find(updates)
+        val groupsId = matchIdRegex?.groups
+        updateId = (groupsId?.get(1)?.value?.toInt() ?: 0) + 1
+        println(updateId)
+
+        val messageTextRegex: Regex = "\"text\":\"(.+?)\"".toRegex()
+        val matchResult: MatchResult? = messageTextRegex.find(updates)
+        val groups = matchResult?.groups
+        val text = groups?.get(1)?.value
+        println(text)
+
     }
 }
 
-fun getUpdates(token: String, updateId: Int): String {
+fun getUpdates(token: String, updateId: Int?): String {
     val client: HttpClient = HttpClient.newBuilder().build()
     val urlGetUpdates = "https://api.telegram.org/bot$token/getUpdates?offset=$updateId"
     val request: HttpRequest = HttpRequest.newBuilder().uri(URI.create(urlGetUpdates)).build()
