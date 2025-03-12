@@ -1,38 +1,38 @@
 package org.example
 
-import java.net.URI
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
+const val MAX_LENGTH_OF_MESSAGE = 4096
+
 
 fun main(args: Array<String>) {
 
+    val englishLearnBot = TelegramBotService()
     val botToken = args[0]
     var updateId: Int? = 0
+    val updateIdRegex = "\"update_id\":(.+?),".toRegex()
+    val messageTextRegex: Regex = "\"text\":\"(.+?)\"".toRegex()
+    val chatIdRegex = "\"chat\":\\{\"id\":(.+?),".toRegex()
 
     while (true) {
         Thread.sleep(2000)
-        val updates: String = getUpdates(botToken, updateId)
-        val updateIdRegex = "\"update_id\":(.+?),".toRegex()
-        val matchIdRegex = updateIdRegex.find(updates)
-        val groupsId = matchIdRegex?.groups
-        updateId = (groupsId?.get(1)?.value?.toInt() ?: 0) + 1
-        println(updateId)
+        val updates: String = englishLearnBot.getUpdates(botToken, updateId)
 
-        val messageTextRegex: Regex = "\"text\":\"(.+?)\"".toRegex()
+        val matchChatIdRegex: MatchResult? = chatIdRegex.find(updates)
+        val groupsChatId = matchChatIdRegex?.groups
+        val chatId = groupsChatId?.get(1)?.value?.toIntOrNull()
+
+        val matchIdRegex: MatchResult? = updateIdRegex.find(updates)
+        val groupsId = matchIdRegex?.groups
+        updateId = groupsId?.get(1)?.value?.toIntOrNull()?.plus(1) ?: continue
+
         val matchResult: MatchResult? = messageTextRegex.find(updates)
         val groups = matchResult?.groups
         val text = groups?.get(1)?.value
-        println(text)
 
+        if (text.equals("hello", ignoreCase = true) && text?.length in (1..4096)) englishLearnBot.sendMessage(
+            botToken,
+            chatId,
+            "Hello"
+        )
     }
 }
 
-fun getUpdates(token: String, updateId: Int?): String {
-    val client: HttpClient = HttpClient.newBuilder().build()
-    val urlGetUpdates = "https://api.telegram.org/bot$token/getUpdates?offset=$updateId"
-    val request: HttpRequest = HttpRequest.newBuilder().uri(URI.create(urlGetUpdates)).build()
-    val response: HttpResponse<String> = client.send(request, HttpResponse.BodyHandlers.ofString())
-
-    return response.body()
-}
