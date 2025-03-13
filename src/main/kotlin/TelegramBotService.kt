@@ -7,32 +7,41 @@ import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 
 
-class TelegramBotService {
-    fun getUpdates(token: String, updateId: Int?): String {
-        val client: HttpClient = HttpClient.newBuilder().build()
-        val urlGetUpdates = "https://api.telegram.org/bot$token/getUpdates?offset=$updateId"
+class TelegramBotService(
+    val apiKey: String,
+    private val client: HttpClient = HttpClient.newBuilder().build(),
+) {
+    fun getUpdates(updateId: Int): String {
+        val urlGetUpdates = "https://api.telegram.org/bot$apiKey/getUpdates?offset=$updateId"
         val request: HttpRequest = HttpRequest.newBuilder().uri(URI.create(urlGetUpdates)).build()
         val response: HttpResponse<String> = client.send(request, HttpResponse.BodyHandlers.ofString())
 
         return response.body()
     }
 
-    fun sendMessage(token: String, chatId: Int?, message: String): String {
-        var text = message
-        val client = HttpClient.newBuilder().build()
+    fun sendMessage(chatId: Long, message: String): String {
+        var textToSend = message
+        var partOfMessage: String
+        var response: String
         val responses = mutableListOf<String>()
 
-        if (text.isEmpty()) return "Отправка невозможна.Недопустимая длина сообщения."
-        while (text.isNotEmpty()) {
-            val firstPartOfMessage = URLEncoder.encode(text.take(MAX_LENGTH_OF_MESSAGE), "UTF-8")
-            val urlSendMessage =
-                "https://api.telegram.org/bot$token/sendMessage?chat_id=$chatId&text=$firstPartOfMessage"
-            val request = HttpRequest.newBuilder().uri(URI.create(urlSendMessage)).build()
-            val response = client.send(request, HttpResponse.BodyHandlers.ofString())
-            responses.add(response.body())
-            text = text.drop(MAX_LENGTH_OF_MESSAGE)
+        if (textToSend.isEmpty()) return "Отправка невозможна.Недопустимая длина сообщения."
+        while (textToSend.isNotEmpty()) {
+            partOfMessage = textToSend.take(MAX_LENGTH_OF_MESSAGE)
+            response = sendMessagePart(chatId = chatId, message = partOfMessage)
+            responses.add(response)
+            textToSend = textToSend.drop(MAX_LENGTH_OF_MESSAGE)
         }
-
         return responses.joinToString("\n")
     }
+
+    private fun sendMessagePart(message: String, chatId: Long): String {
+        val encodedText = URLEncoder.encode(message, "UTF-8")
+        val urlSendMessage =
+            "$API_URL$apiKey/sendMessage?chat_id=$chatId&text=$encodedText"
+        val request = HttpRequest.newBuilder().uri(URI.create(urlSendMessage)).build()
+        val response = client.send(request, HttpResponse.BodyHandlers.ofString())
+        return response.body()
+    }
 }
+
