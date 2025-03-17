@@ -6,7 +6,8 @@ import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 
-
+const val LEARN_WORDS_BUTTON = "clicked_button_Learn_Words"
+const val STATISTICS_BUTTON = "clicked_button_Statistics"
 class TelegramBotService(
     val apiKey: String,
     private val client: HttpClient = HttpClient.newBuilder().build(),
@@ -55,11 +56,11 @@ class TelegramBotService(
                         [
                             {
                                 "text":"Изучить слова",
-                                "callback_data":"clicked_button_Learn_Words"
+                                "callback_data":"$LEARN_WORDS_BUTTON"
                             },
                             {
                                 "text":"Статистика",
-                                "callback_data":"clicked_button_Statistics"
+                                "callback_data":"$STATISTICS_BUTTON"
                             }
                         ]
                     ]

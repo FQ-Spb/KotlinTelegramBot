@@ -40,7 +40,7 @@ fun main(args: Array<String>) {
         )
         if (text.equals("/start", ignoreCase = true)) englishLearnBot.sendMenu(chatId)
 
-        if (data == "clicked_button_Statistics") englishLearnBot.sendMessage(chatId, "Выучено 10 слов из 10 | 100%")
+        if (data == STATISTICS_BUTTON) englishLearnBot.sendMessage(chatId, "Выучено 10 слов из 10 | 100%")
     }
 }
 
