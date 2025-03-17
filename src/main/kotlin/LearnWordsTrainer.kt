@@ -2,6 +2,16 @@ package org.example
 
 import java.io.File
 
+data class Word(
+    val original: String,
+    val translate: String,
+    var correctAnswerCount: Int = 0,
+) {
+    override fun toString(): String {
+        return "$original|$translate|$correctAnswerCount"
+    }
+}
+
 class Statistic(
     val learnedCount: Int,
     val learnedPercent: Int,
@@ -44,11 +54,11 @@ class LearnWordsTrainer {
         wordsFile.writeText(listOfWords.joinToString("\n"))
     }
 
-    fun getStatistic(): Statistic {
+    fun getStatistic(): String {
         val total = dictionary.size
         val learnedCount = dictionary.filter { it.correctAnswerCount >= NUMBER_OF_CORRECT_ANSWERS_FOR_REMEMBER }.size
         val learnedPercent = (learnedCount.toDouble() / total * CONST_FOR_PERCENT_CALCULATING).toInt()
-        return Statistic(learnedCount, learnedPercent, total)
+        return "Выучено ${learnedCount} из ${total} слов | ${learnedPercent}%\n"
     }
 
     fun getNextQuestion(): Question? {
@@ -56,7 +66,9 @@ class LearnWordsTrainer {
             dictionary.filter { it.correctAnswerCount < NUMBER_OF_CORRECT_ANSWERS_FOR_REMEMBER }
         if (notLearnedList.isEmpty()) return null
         val questionWords = if (notLearnedList.size < NUMBER_OF_ANSWER_OPTIONS) {
-            val reserveList = (notLearnedList+dictionary.shuffled().take(NUMBER_OF_ANSWER_OPTIONS)).distinct().shuffled().take(NUMBER_OF_ANSWER_OPTIONS)
+            val reserveList =
+                (notLearnedList + dictionary.shuffled().take(NUMBER_OF_ANSWER_OPTIONS)).distinct().shuffled()
+                    .take(NUMBER_OF_ANSWER_OPTIONS)
             reserveList
         } else notLearnedList.shuffled().take(NUMBER_OF_ANSWER_OPTIONS)
         val correctAnswer = questionWords.random()
