@@ -11,11 +11,13 @@ fun main(args: Array<String>) {
     val updateIdRegex = "\"update_id\":(.+?),".toRegex()
     val messageTextRegex: Regex = "\"text\":\"(.+?)\"".toRegex()
     val chatIdRegex = "\"chat\":\\{\"id\":(.+?),".toRegex()
+    val dataRegex = "\"data\":\"(.+?)\"".toRegex()
+    val trainer = LearnWordsTrainer()
 
     while (true) {
         Thread.sleep(2000)
         val updates: String = englishLearnBot.getUpdates(updateId)
-
+        println(updates)
         val matchChatIdRegex: MatchResult? = chatIdRegex.find(updates)
         val groupsChatId: MatchGroupCollection? = matchChatIdRegex?.groups
         val chatId: Long = groupsChatId?.get(1)?.value?.toLong() ?: 0
@@ -28,10 +30,17 @@ fun main(args: Array<String>) {
         val groups = matchResult?.groups
         val text = groups?.get(1)?.value
 
-        if (text.equals("hello", ignoreCase = true) && text?.length in (1..4096)) englishLearnBot.sendMessage(
+        val matchDataRegex = dataRegex.find(updates)
+        val groupsData = matchDataRegex?.groups
+        val data = groupsData?.get(1)?.value
+
+        if (text.equals("hello", ignoreCase = true)) englishLearnBot.sendMessage(
             chatId,
             "Hello"
         )
+        if (text.equals("/start", ignoreCase = true)) englishLearnBot.sendMenu(chatId)
+
+        if (data == STATISTICS_BUTTON) englishLearnBot.sendMessage(chatId, "Выучено 10 слов из 10 | 100%")
     }
 }
 

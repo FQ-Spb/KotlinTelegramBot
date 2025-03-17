@@ -6,7 +6,8 @@ import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 
-
+const val LEARN_WORDS_BUTTON = "clicked_button_Learn_Words"
+const val STATISTICS_BUTTON = "clicked_button_Statistics"
 class TelegramBotService(
     val apiKey: String,
     private val client: HttpClient = HttpClient.newBuilder().build(),
@@ -40,6 +41,36 @@ class TelegramBotService(
         val urlSendMessage =
             "$API_URL$apiKey/sendMessage?chat_id=$chatId&text=$encodedText"
         val request = HttpRequest.newBuilder().uri(URI.create(urlSendMessage)).build()
+        val response = client.send(request, HttpResponse.BodyHandlers.ofString())
+        return response.body()
+    }
+
+    fun sendMenu(chatId: Long): String {
+        val urlSendMessage = "$API_URL$apiKey/sendMessage"
+        val menuJson = """
+            {
+            "chat_id":$chatId,
+            "text":"Основное меню",
+            "reply_markup":{
+                   "inline_keyboard": [
+                        [
+                            {
+                                "text":"Изучить слова",
+                                "callback_data":"$LEARN_WORDS_BUTTON"
+                            },
+                            {
+                                "text":"Статистика",
+                                "callback_data":"$STATISTICS_BUTTON"
+                            }
+                        ]
+                    ]
+                }
+            }
+        """.trimIndent()
+        val request = HttpRequest.newBuilder().uri(URI.create(urlSendMessage))
+            .header("Content-type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(menuJson))
+            .build()
         val response = client.send(request, HttpResponse.BodyHandlers.ofString())
         return response.body()
     }
