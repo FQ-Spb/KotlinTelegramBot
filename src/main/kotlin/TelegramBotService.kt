@@ -8,11 +8,13 @@ import java.net.http.HttpResponse
 
 const val LEARN_WORDS_BUTTON = "clicked_button_Learn_Words"
 const val STATISTICS_BUTTON = "clicked_button_Statistics"
+const val CALLBACK_DATA_ANSWER_PREFIX = "answer_"
 
 class TelegramBotService(
     val apiKey: String,
-    private val client: HttpClient = HttpClient.newBuilder().build(),
 ) {
+    private val client: HttpClient = HttpClient.newBuilder().build()
+
     fun getUpdates(updateId: Int): String {
         val urlGetUpdates = "https://api.telegram.org/bot$apiKey/getUpdates?offset=$updateId"
         val request: HttpRequest = HttpRequest.newBuilder().uri(URI.create(urlGetUpdates)).build()
@@ -68,12 +70,63 @@ class TelegramBotService(
                 }
             }
         """.trimIndent()
-        val request = HttpRequest.newBuilder().uri(URI.create(urlSendMessage))
+        val request = HttpRequest.newBuilder()
+            .uri(URI.create(urlSendMessage))
             .header("Content-type", "application/json")
             .POST(HttpRequest.BodyPublishers.ofString(menuJson))
             .build()
         val response = client.send(request, HttpResponse.BodyHandlers.ofString())
         return response.body()
+    }
+
+    private fun sendQuestion(chatId: Long, question: Question): String {
+        val indexes = question.variants.mapIndexed { index, _ -> CALLBACK_DATA_ANSWER_PREFIX + index }
+        val url = "$API_URL$apiKey/sendMessage"
+        val questionJson = """
+        {
+            "chat_id":"$chatId",
+            "text":"${question.correctAnswer.original}",
+            "reply_markup":{
+                "inline_keyboard":[
+                    [
+                        {
+                        "text":"${question.variants[0].translate}",
+                        "callback_data":"${indexes[0]}"
+                        },
+                        {
+                        "text":"${question.variants[1].translate}",
+                        "callback_data":"${indexes[1]}"
+                        }
+                    ],
+                    [
+                        {
+                        "text":"${question.variants[2].translate}",
+                        "callback_data":"${indexes[2]}"
+                        },
+                        {
+                        "text":"${question.variants[3].translate}",
+                        "callback_data":"${indexes[3]}"
+                        }                    
+                    ]
+                ]
+            }
+        }
+        """.trimIndent()
+        val request = HttpRequest.newBuilder()
+            .uri(URI.create(url))
+            .header("Content-type", "application/json")
+            .POST(HttpRequest.BodyPublishers.ofString(questionJson))
+            .build()
+        val response = client.send(request, HttpResponse.BodyHandlers.ofString())
+        return response.body()
+    }
+    fun checkNextQuestionAndSend(
+        trainer: LearnWordsTrainer,
+        chatId: Long
+    ){
+        val question = trainer.getNextQuestion()
+        if (question == null) this.sendMessage(chatId, "Все слова выучены.")
+        else this.sendQuestion(chatId,question)
     }
 }
 

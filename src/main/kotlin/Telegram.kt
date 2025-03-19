@@ -41,6 +41,10 @@ fun main(args: Array<String>) {
         if (text.equals("/start", ignoreCase = true)) englishLearnBot.sendMenu(chatId)
 
         if (data == STATISTICS_BUTTON) englishLearnBot.sendMessage(chatId, trainer.getStatistic())
+
+        if (data == LEARN_WORDS_BUTTON) englishLearnBot.checkNextQuestionAndSend(chatId = chatId,trainer = trainer)
     }
 }
+
+
 
