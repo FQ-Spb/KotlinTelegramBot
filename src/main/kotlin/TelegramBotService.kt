@@ -8,6 +8,7 @@ import java.net.http.HttpResponse
 
 const val LEARN_WORDS_BUTTON = "clicked_button_Learn_Words"
 const val STATISTICS_BUTTON = "clicked_button_Statistics"
+
 class TelegramBotService(
     val apiKey: String,
     private val client: HttpClient = HttpClient.newBuilder().build(),
