@@ -79,8 +79,16 @@ class TelegramBotService(
         return response.body()
     }
 
-    private fun sendQuestion(chatId: Long, question: Question): String {
-        val indexes = question.variants.mapIndexed { index, _ -> CALLBACK_DATA_ANSWER_PREFIX + index }
+    fun sendQuestion(chatId: Long, question: Question): String {
+        val variantsString = question.variants.mapIndexed { index, word ->
+            """
+            {
+            "text":"${word.translate}",
+            "callback_data":"${CALLBACK_DATA_ANSWER_PREFIX + index}"
+            }
+        """.trimIndent()
+        }
+
         val url = "$API_URL$apiKey/sendMessage"
         val questionJson = """
         {
@@ -89,24 +97,10 @@ class TelegramBotService(
             "reply_markup":{
                 "inline_keyboard":[
                     [
-                        {
-                        "text":"${question.variants[0].translate}",
-                        "callback_data":"${indexes[0]}"
-                        },
-                        {
-                        "text":"${question.variants[1].translate}",
-                        "callback_data":"${indexes[1]}"
-                        }
+                        ${variantsString.take(2).joinToString(",")}
                     ],
                     [
-                        {
-                        "text":"${question.variants[2].translate}",
-                        "callback_data":"${indexes[2]}"
-                        },
-                        {
-                        "text":"${question.variants[3].translate}",
-                        "callback_data":"${indexes[3]}"
-                        }                    
+                       ${variantsString.drop(2).take(2).joinToString(",")}
                     ]
                 ]
             }
@@ -119,14 +113,6 @@ class TelegramBotService(
             .build()
         val response = client.send(request, HttpResponse.BodyHandlers.ofString())
         return response.body()
-    }
-    fun checkNextQuestionAndSend(
-        trainer: LearnWordsTrainer,
-        chatId: Long
-    ){
-        val question = trainer.getNextQuestion()
-        if (question == null) this.sendMessage(chatId, "Все слова выучены.")
-        else this.sendQuestion(chatId,question)
     }
 }
 

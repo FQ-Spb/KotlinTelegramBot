@@ -42,9 +42,18 @@ fun main(args: Array<String>) {
 
         if (data == STATISTICS_BUTTON) englishLearnBot.sendMessage(chatId, trainer.getStatistic())
 
-        if (data == LEARN_WORDS_BUTTON) englishLearnBot.checkNextQuestionAndSend(chatId = chatId,trainer = trainer)
+        if (data == LEARN_WORDS_BUTTON) checkNextQuestionAndSend(chatId = chatId,trainer = trainer, bot = englishLearnBot)
     }
 }
 
+fun checkNextQuestionAndSend(
+    trainer: LearnWordsTrainer,
+    chatId: Long,
+    bot:TelegramBotService
+){
+    val question = trainer.getNextQuestion()
+    if (question == null) bot.sendMessage(chatId, "Все слова выучены.")
+    else bot.sendQuestion(chatId,question)
+}
 
 
